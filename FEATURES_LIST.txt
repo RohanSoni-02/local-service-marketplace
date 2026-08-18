@@ -1,0 +1,324 @@
+# Local Service Marketplace - Feature List
+
+## Overview
+This is a local service marketplace mobile web app that connects users with verified local service providers (shops) for home services, repairs, and tool rentals. The app features real-time service broadcasting, offer negotiation, group booking for societies, and end-to-end transaction management.
+
+---
+
+## Core User Features
+
+### 1. Service Discovery & Search
+- **Text Search**: Search for parts, tools, or services by description (e.g., "15mm pipe joint", "MCB switch")
+- **Photo Search**: Scan or upload photos to identify parts/tools (preview feature)
+- **Category Browsing**: Browse services by 8 main categories:
+  - Plumber
+  - Electrician
+  - Carpenter
+  - AC Repair
+  - Hardware
+  - Tool Rental
+  - Painter
+  - Appliance
+- **Nearby Shops**: View shops within 5km radius in list or map view
+- **Sorting**: Shops sorted by rating (highest first) in category views
+- **Distance Display**: Shows distance to each shop in kilometers
+- **Service Radius**: Displays how far each shop travels for services
+
+### 2. Shop Profile & Verification
+- **Shop Gallery**: Photo gallery showcasing shop and work
+- **Verification System**: Three-tier verification:
+  - Gold Verified (highest)
+  - Verified (standard)
+  - New (newly joined)
+- **Rating System**: Star rating based on customer reviews
+- **Experience Metrics**: Jobs completed counter
+- **Operational Info**: Business hours and service area
+- **Shop Bio**: Detailed description of shop specialties
+- **Location Services**: Map integration showing exact shop locations
+
+### 3. Service Booking Workflow
+- **Issue Selection**: Choose from category-specific issue types
+- **Problem Description**: Detailed text description of the problem
+- **Media Attachment**: Optional photo upload to illustrate issue
+- **Service Timing**:
+  - Instant service (as soon as possible)
+  - Scheduled service (predefined time slots)
+- **Budget Management** (Optional):
+  - Set expected budget range (e.g., "₹300-500")
+  - Allow/disallow shop negotiation
+- **Real-time Broadcasting**:
+  - Request sent to 4 nearby shops simultaneously
+  - Live radar visualization showing broadcast range
+- **Offer Management**:
+  - Receive multiple offers from different shops
+  - View offered prices and ETAs
+  - Counter-offer negotiation system
+  - Track negotiation status (pending, countered, accepted, declined)
+- **Offer Acceptance**:
+  - Accept offer to proceed with service
+  - Automatic tracking initiation upon acceptance
+- **Job Tracking**:
+  - Status timeline: Broadcasting → Accepted → On the way → Completed
+  - Real-time status updates with descriptions
+  - Technician assignment visibility
+  - Estimated arrival times
+- **Post-Service**:
+  - Secure in-app chat with service provider
+  - Payment confirmation (via UPI in demo)
+  - Rating and review submission
+  - Service cost breakdown
+
+### 4. Tool Rental Workflow
+- **Tool Discovery**: Browse available tools at verified shops
+- **Tool Details**:
+  - Name, category, and condition (Excellent/Good/Fair)
+  - Daily rental price clearly displayed
+  - Refundable deposit amount
+- **Rental Configuration**:
+  - Select rental duration (1-14 days)
+  - Instant cost calculation: (daily price × days) + deposit
+  - UPI payment integration (demo)
+- **Rental Management**:
+  - Pickup confirmation process
+  - Active rental tracking with pickup/due timestamps
+  - Deposit held until return verification
+  - Return process to reclaim deposit
+  - In-app chat with shop during rental period
+
+### 5. User Account & History
+- **Bookings Tab**:
+  - Complete booking history with status indicators
+  - Shop details and service information
+  - Completed job costs and user ratings
+  - Direct chat access from booking history
+  - Cancelled booking visibility
+- **Rentals Tab**:
+  - Rental history with active/returned status
+  - Tool details and rental periods
+  - Pickup and return timestamps
+  - Total rental costs displayed
+  - Direct access to shop chat
+- **Chats Tab**:
+  - Conversation list with all service providers
+  - Last message preview for each thread
+  - Visual indicators for verified shops
+  - Direct access to full conversation threads
+- **Chat Interface**:
+  - Real-time messaging (simulated with auto-replies in demo)
+  - Message timestamps
+  - User vs. shop message styling
+  - Shop contact information (call button)
+  - Message input with send functionality
+
+### 6. Profile & Settings
+- **Personal Information**: Name, phone number, and address display
+- **Account Management**:
+  - Saved addresses management
+  - Payment methods (UPI-focused in demo)
+  - Notification preferences
+  - Language selection (English default)
+- **Support & Legal**:
+  - Verified shops policy information
+  - Help center access
+  - Terms & privacy policy
+  - Help & support resources
+- **Account Actions**: Secure logout functionality
+- **App Info**: Version number display (Thikana v1.0.0)
+
+### 7. Society / Group Booking System
+- **Society Linking**:
+  - Users can link their account to apartment society/building
+  - Society registration flow for new communities
+  - Admin designation for society creators
+  - Society verification and management
+- **Group Requests**:
+  - Residents can create group service requests for:
+    - Pest control
+    - Water tank cleaning
+    - Gardening/maintenance
+    - Other society-wide services
+  - Detailed request description and preferred date
+  - Tracking of participating flats
+  - Status management: open → closed → completed
+- **Shop Participation**:
+  - Service providers submit offers for group requests
+  - Per-flat pricing model with minimum flat requirements
+  - Offer comparison and selection by society admins
+  - Offer negotiation and counter-offer capabilities
+  - Final offer selection and request closing
+- **Society-Specific Views**:
+  - Admin dashboard for managing society requests
+  - Resident view for joining and tracking requests
+  - Search functionality to find societies by name/pincode
+  - Registration flow for new societies
+
+---
+
+## Technical Architecture
+
+### Frontend Framework
+- **Next.js 16.3.0**: App Router with React 18
+- **TypeScript**: End-to-end type safety
+- **Tailwind CSS v4**: Utility-first styling with custom design system
+- **Turbopack**: Next.js compiler for fast development
+- **Shadcn/ui**: Accessible UI primitives (buttons, cards, dialogs, tabs, etc.)
+- **Lucide Icons**: Consistent icon set throughout the application
+
+### State Management & Data Flow
+- **React Hooks**: useState, useEffect, useRef for local state
+- **SearchParams**: URL-based state sharing and deep linking
+- **Suspense Boundaries**: For client-side rendering boundaries
+- **Dynamic Imports**: Code splitting for non-critical components
+- **Client-Only Components**: Where browser APIs are required (maps, etc.)
+- **Mock Data Layer**: Local data simulation for development/demo
+
+### API & Communication
+- **Next.js Navigation**: Client-side routing with useRouter/useSearchParams
+- **REST-style Endpoints**: Simulated through mock-data.ts functions
+- **Real-time Features**: Streaming updates via client state (broadcast simulation)
+- **WebSocket-Ready**: Architecture supports real-time features
+- **Error Boundaries**: Graceful error handling and fallback UI
+- **Loading States**: Skeleton loaders and placeholder content
+
+### Performance & Optimization
+- **Code Splitting**: Route-based and dynamic import splitting
+- **Image Optimization**: Next.js Image component with automatic sizing
+- **Asset Optimization**: Optimized fonts and icons
+- **Bundle Analysis**: Conscious dependency management
+- **Caching Strategy**: Client-side caching for instant navigation
+- **Prefetching**: Intelligent link prefetching for navigation
+
+### Deployment & DevOps
+- **Vercel Optimized**: Configured for Vercel deployment platform
+- **Environment Variables**: Secure configuration management
+- **Build Optimization**: Production-ready build process
+- **Type Checking**: Strict TypeScript configuration
+- **Linting**: ESLint integration for code quality
+- **Responsive Design**: Mobile-first approach with adaptive layouts
+
+---
+
+## UI/UX & Design System
+
+### Visual Design
+- **Mobile-First Approach**: Designed primarily for mobile use
+- **Phone Frame UI**: Unique frame simulating mobile device experience
+- **Color System**:
+  - Primary: Brand color for key actions
+  - Secondary: Accent colors for secondary actions
+  - Background: Layered background system
+  - Foreground: Text and content colors
+  - Muted: Subtext and disabled states
+  - Border: Subtle dividers and outlines
+- **Typography**: Hierarchical type system with clear readability
+- **Spacing**: Consistent 4px grid-based spacing system
+- **Border Radius**: Consistent rounded corners (rounded-xl/2xl)
+- **Shadows**: Depth indicators for elevation and focus
+- **Animations**: Motion for state changes and feedback
+
+### Components Library
+- **Layout Components**:
+  - PhoneFrame: App container simulating mobile device
+  - BottomNav: Tab-based navigation (5 tabs)
+  - Layouts: Various page layouts (default, tabs, society)
+- **Navigation**:
+  - Tabs: Tabbed interfaces (shoptab, society tab)
+  - Breadcrumbs: Implicit navigation through hierarchy
+  - Links: Styled navigation components
+- **Data Display**:
+  - Cards: Shop cards, tool cards, booking/rental cards
+  - Lists: Vertical lists with dividers
+  - Grids: Responsive grid layouts (category grids)
+  - Maps: Integrated map views for location display
+- **Form Elements**:
+  - Buttons: Primary, secondary, outline, icon variants
+  - Inputs: Text, textarea, number inputs with validation
+  - Selects: Custom select implementations (issue types)
+  - Toggles: Checkbox and switch controls
+  - File Upload: Photo attachment components
+- **Feedback**:
+  - Status Pills: Colored status indicators
+  - Badges: Verification and count indicators
+  - Toasts: Temporary notifications (implied)
+  - Loaders: Spinners and skeleton screens
+  - Empty States: Helpful empty state illustrations
+- **Specialized**:
+  - FlowHeader: Consistent app bar with back/actions
+  - BroadcastRadar: Real-time request broadcasting visualization
+  - StatusTimeline: Multi-step process visualization
+  - MapView: Interactive map with pin clustering
+  - ReviewItem: Individual review display with rating
+  - StarRating: Visual rating component (full/half stars)
+
+### Interactive Patterns
+- **Gesture Support**: Touch-friendly controls and spacing
+- **Feedback Loops**: Visual feedback for all interactions
+- **Error Prevention**: Disabled states for invalid actions
+- **Progressive Disclosure**: Advanced features hidden until needed
+- **Contextual Actions**: Relevant actions shown based on state
+- **Confirmation**: Destructive actions require confirmation
+- **Accessibility**: ARIA labels and semantic HTML where applicable
+
+---
+
+## Data Models & Entities
+
+### Core Entities
+- **Shop**: Service provider with verification, ratings, location, hours
+- **Category**: Service classification with icons and names
+- **Tool**: Rentable item with condition, pricing, and availability
+- **Booking**: Service request with issue, timing, status, and offers
+- **Rental**: Tool rental agreement with duration, pricing, and timeline
+- **Review**: Customer feedback with rating and text
+- **Society**: Apartment building/complex for group booking
+- **GroupRequest**: Society-initiated service request for multiple flats
+- **Offer**: Shop response to group request with pricing and terms
+- **ChatMessage**: Communication between user and shop
+
+### Status Flows
+- **Booking Status**: broadcasting → accepted → on_the_way → completed
+- **Rental Status**: active → returned
+- **Group Request Status**: open → closed → completed
+- **Offer Status**: pending → countered → accepted → declined (from user perspective)
+- **Chat Sender**: user or shop
+
+### Business Logic
+- **Service Radius**: Shops service within defined kilometers
+- **Verification Tiers**: Based on job completion and quality metrics
+- **Pricing Models**:
+  - Services: Negotiated or fixed pricing
+  - Rentals: Daily rate + refundable deposit
+  - Societies: Per-flat pricing with minimums
+- **Matching**: Proximity-based (within 5km) for individual services
+- **Group Buying**: Volume-based pricing for society requests
+
+---
+
+## Demo / Simulation Features
+
+### Mock Data Realism
+- **Geographic Distribution**: Shops placed around Delhi NCR area
+- **Realistic Naming**: Authentic shop names and service types
+- **Pricing Accuracy**: Market-competitive service and rental rates
+- **Verification Distribution**: Mix of verification tiers
+- **Rating Variability**: Realistic rating distribution (3-5 stars)
+- **Timing Accuracy**: Realistic service durations and ETAs
+- **Inventory Logic**: Stock levels for rental tools
+
+### User Experience Simulations
+- **Real-time Effects**: Simulated broadcasting and offer responses
+- **Negotiation Logic**: Probabilistic offer acceptance/rejection
+- **Chat Responsiveness**: Auto-replies with typing delay simulation
+- **Status Progression**: Timed status updates for demo flow
+- **Account Persistence**: Session-based user state maintenance
+- **Society Features**: Fully functional group request workflow
+
+### Development & Testing Aids
+- **Clear Code Structure**: Well-organized component hierarchy
+- **Extensive Comments**: Code documentation for maintenance
+- **Consistent Naming**: Predictable file and function names
+- **Type Definitions**: Complete TypeScript interfaces
+- **Modular Design**: Reusable components and utility functions
+- **Scalable Architecture**: Easy to extend with new features
+
+---
