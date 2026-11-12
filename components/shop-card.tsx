@@ -1,55 +1,53 @@
 import Link from "next/link"
-import Image from "next/image"
-import { Briefcase, MapPin } from "lucide-react"
-import type { Shop } from "@/lib/mock-data"
-import { StarRating } from "@/components/star-rating"
-import { VerifiedBadge } from "@/components/verified-badge"
-import { cn } from "@/lib/utils"
+import { getCategory } from "@/lib/catalog"
+import { formatDistance, formatINR } from "@/lib/format"
+import type { ShopListing } from "@/lib/server/shops"
+import { ShopPhoto } from "@/components/shop-photo"
+import { TierBadge } from "@/components/tier-badge"
+import { Rating } from "@/components/ui/misc"
 
-export function ShopCard({
-  shop,
-  variant = "list",
-  className,
-  priority = false,
-}: {
-  shop: Shop
-  variant?: "list" | "carousel"
-  className?: string
-  priority?: boolean
-}) {
+/** Tall photo card for horizontal carousels. */
+export function ShopCard({ shop, priority }: { shop: ShopListing; priority?: boolean }) {
   return (
     <Link
       href={`/shop/${shop.id}`}
-      className={cn(
-        "block overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border active:opacity-90",
-        variant === "carousel" ? "w-[220px] shrink-0" : "w-full",
-        className,
-      )}
+      className="pressable group w-[15.5rem] shrink-0 snap-start overflow-hidden rounded-2xl border border-line bg-surface"
     >
-      <div className={cn("relative w-full bg-muted", variant === "carousel" ? "h-28" : "h-32")}>
-        <Image
-          src={shop.photo || "/placeholder.svg"}
-          alt={shop.name}
-          fill
-          sizes="220px"
-          className="object-cover"
-          priority={priority}
-        />
-        <VerifiedBadge tier={shop.tier} className="absolute left-2 top-2 shadow-sm" />
+      <div className="relative">
+        <ShopPhoto shop={shop} sizes="248px" priority={priority} className="aspect-[4/3]" />
+        <TierBadge tier={shop.tier} className="absolute left-2.5 top-2.5 shadow-card" />
       </div>
-      <div className="flex flex-col gap-1 p-3">
-        <h3 className="truncate font-heading text-[14px] font-semibold leading-snug text-foreground">
-          {shop.name}
-        </h3>
-        <div className="flex items-center gap-2.5 text-muted-foreground">
-          <StarRating rating={shop.rating} />
-          <span className="flex items-center gap-1 text-xs">
-            <Briefcase className="size-3" aria-hidden="true" />
-            {shop.jobsCompleted}
-          </span>
-          <span className="flex items-center gap-1 text-xs">
-            <MapPin className="size-3" aria-hidden="true" />
-            {shop.distanceKm} km
+      <div className="p-3.5">
+        <h3 className="truncate text-base font-semibold text-ink">{shop.name}</h3>
+        <p className="mt-0.5 text-[13px] text-ink-soft">{getCategory(shop.categoryId)?.name}</p>
+        <div className="mt-2.5 flex items-center justify-between">
+          <Rating value={shop.rating} count={shop.ratingCount} />
+          <span className="text-[13px] text-ink-soft">{formatDistance(shop.distanceKm)}</span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+/** Compact row for vertical lists. */
+export function ShopRow({ shop, priority }: { shop: ShopListing; priority?: boolean }) {
+  return (
+    <Link
+      href={`/shop/${shop.id}`}
+      className="pressable flex gap-3.5 rounded-2xl border border-line bg-surface p-3 hover:border-line-strong"
+    >
+      <ShopPhoto shop={shop} sizes="88px" priority={priority} className="size-[88px] shrink-0 rounded-xl" />
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+        <h3 className="truncate text-base font-semibold text-ink">{shop.name}</h3>
+        <div className="flex items-center gap-2 text-[13px] text-ink-soft">
+          <Rating value={shop.rating} count={shop.ratingCount} />
+          <span aria-hidden="true">·</span>
+          <span>{formatDistance(shop.distanceKm)}</span>
+        </div>
+        <div className="mt-0.5 flex items-center justify-between gap-2">
+          <TierBadge tier={shop.tier} />
+          <span className="text-[13px] text-ink-soft">
+            from <span className="tabular font-semibold text-ink">{formatINR(shop.visitFee)}</span>
           </span>
         </div>
       </div>

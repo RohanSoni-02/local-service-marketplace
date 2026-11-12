@@ -1,92 +1,76 @@
-import {
-  UserRound,
-  MapPin,
-  Wallet,
-  Bell,
-  Globe,
-  ShieldCheck,
-  CircleHelp,
-  FileText,
-  LogOut,
-  ChevronRight,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+import type { Metadata } from "next"
+import Link from "next/link"
+import { Building2, ChevronRight, CircleHelp, ClipboardList, LogOut, MapPin, ShieldCheck } from "lucide-react"
+import { signOut } from "@/lib/actions/auth"
+import { formatPhone } from "@/lib/format"
+import { requireUser } from "@/lib/server/auth"
+import { getMembership } from "@/lib/server/society"
+import { EditProfile } from "@/components/edit-profile"
+import { SubmitButton } from "@/components/ui/button"
+import { Avatar } from "@/components/ui/misc"
 
-const menuGroups = [
-  {
-    title: "Account",
-    items: [
-      { icon: MapPin, label: "Saved addresses" },
-      { icon: Wallet, label: "Payment methods · UPI" },
-      { icon: Bell, label: "Notifications" },
-      { icon: Globe, label: "Language · English" },
-    ],
-  },
-  {
-    title: "Support",
-    items: [
-      { icon: ShieldCheck, label: "Verified shops policy" },
-      { icon: CircleHelp, label: "Help center" },
-      { icon: FileText, label: "Terms & privacy" },
-    ],
-  },
-]
+export const metadata: Metadata = { title: "Profile" }
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const user = await requireUser("/profile")
+  const membership = await getMembership(user.id)
+
+  const links = [
+    { href: "/bookings", icon: ClipboardList, label: "Your activity", detail: "Visits, rentals and holds" },
+    {
+      href: "/society",
+      icon: Building2,
+      label: "Society",
+      detail: membership ? `${membership.society.name} · Flat ${membership.member.flat}` : "Link your flat for group rates",
+    },
+    { href: "/help#verification", icon: ShieldCheck, label: "How shops are verified", detail: "What the badges mean" },
+    { href: "/help", icon: CircleHelp, label: "Help", detail: "Payments, cancellations, deposits" },
+  ]
+
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex items-center gap-3.5 border-b border-border bg-card px-4 py-5">
-          <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-            <UserRound className="size-7" aria-hidden="true" />
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <h1 className="font-heading text-[17px] font-bold text-foreground">Ananya Iyer</h1>
-            <p className="text-[12.5px] text-muted-foreground">+91 98765 43210</p>
-            <p className="text-[12px] text-muted-foreground">Lajpat Nagar, New Delhi · 110024</p>
-          </div>
+    <div className="flex flex-col gap-6 px-4 pt-6">
+      <header className="flex animate-rise items-center gap-4">
+        <Avatar name={user.name} className="size-16 text-xl" />
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-2xl font-bold leading-tight">{user.name}</h1>
+          <p className="tabular text-sm text-ink-soft">{formatPhone(user.phone)}</p>
         </div>
+        <EditProfile user={{ name: user.name, address: user.address, pincode: user.pincode }} />
+      </header>
 
-        <div className="flex flex-col gap-5 px-4 py-5">
-          {menuGroups.map((group) => (
-            <div key={group.title} className="flex flex-col gap-2">
-              <span className="px-1 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {group.title}
-              </span>
-              <div className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border">
-                {group.items.map((item, i) => {
-                  const Icon = item.icon
-                  return (
-                    <button
-                      key={item.label}
-                      type="button"
-                      className={cn(
-                        "flex items-center gap-3 px-4 py-3.5 text-left active:bg-secondary/60",
-                        i !== group.items.length - 1 && "border-b border-border/70",
-                      )}
-                    >
-                      <Icon className="size-[18px] shrink-0 text-primary" aria-hidden="true" />
-                      <span className="flex-1 text-[13.5px] font-medium text-foreground">{item.label}</span>
-                      <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 rounded-2xl bg-secondary py-3.5 text-[13.5px] font-semibold text-destructive active:opacity-80"
-          >
-            <LogOut className="size-4" aria-hidden="true" />
-            Log out
-          </button>
-
-          <p className="pb-2 text-center text-[11.5px] text-muted-foreground">Thikana v1.0.0</p>
+      <div className="flex gap-3 rounded-2xl border border-line bg-surface p-4">
+        <MapPin className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
+        <div className="text-sm">
+          <p className="font-semibold text-ink">Home address</p>
+          <p className="text-ink-soft">
+            {user.address}, {user.pincode}
+          </p>
         </div>
       </div>
+
+      <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+        {links.map(({ href, icon: Icon, label, detail }) => (
+          <li key={href} className="border-b border-line last:border-b-0">
+            <Link href={href} className="flex items-center gap-3.5 px-4 py-3.5 transition-colors duration-150 hover:bg-sunken active:bg-sunken">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+                <Icon className="size-[18px]" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-semibold text-ink">{label}</span>
+                <span className="block truncate text-[13px] text-ink-soft">{detail}</span>
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-ink-faint" aria-hidden="true" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <form action={signOut}>
+        <SubmitButton variant="secondary" size="lg" className="w-full">
+          <LogOut aria-hidden="true" />
+          Sign out
+        </SubmitButton>
+      </form>
     </div>
   )
 }
-

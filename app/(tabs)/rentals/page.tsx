@@ -1,73 +1,102 @@
-import Image from "next/image"
-import { Drill, CheckCircle2 } from "lucide-react"
-import { rentalHistory, getShop, getTool } from "@/lib/mock-data"
-import { formatINR } from "@/lib/format"
-import { cn } from "@/lib/utils"
+import type { Metadata } from "next"
+import Link from "next/link"
+import { Drill } from "lucide-react"
+import { formatDateTime, formatINR, formatTime, plural, timeAgo } from "@/lib/format"
+import { requireUser } from "@/lib/server/auth"
+import { listRentals } from "@/lib/server/rentals"
+import { listActiveReservations } from "@/lib/server/stock"
+import { ActivityHeader } from "@/components/activity-header"
+import { RentalStatusPill } from "@/components/status"
+import { ToolPhoto } from "@/components/tool-row"
+import { buttonClass } from "@/components/ui/button-class"
+import { EmptyState, Pill } from "@/components/ui/misc"
 
-export default function RentalsPage() {
+export const metadata: Metadata = { title: "Rentals" }
+
+export default async function RentalsPage() {
+  const user = await requireUser("/rentals")
+  const [rentals, holds] = await Promise.all([listRentals(user.id), listActiveReservations(user.id)])
+
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-border bg-card px-4 pb-3 pt-4">
-        <h1 className="font-heading text-[19px] font-bold text-foreground">My Rentals</h1>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {rentalHistory.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-            <Drill className="size-8 text-muted-foreground" aria-hidden="true" />
-            <p className="text-[13.5px] font-medium text-foreground">No rentals yet</p>
-            <p className="text-[12.5px] text-muted-foreground">Rented tools will show up here.</p>
-          </div>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {rentalHistory.map((rental, index) => {
-              const shop = getShop(rental.shopId)
-              const tool = getTool(rental.toolId)
-              if (!shop || !tool) return null
-              const isActive = rental.status === "active"
-              return (
-                <li
-                  key={rental.id}
-                  className="flex items-center gap-3 rounded-2xl bg-card p-3.5 shadow-sm ring-1 ring-border"
-                >
-                  <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted">
-                    <Image
-                      src={tool.photo || "/placeholder.svg"}
-                      alt={tool.name}
-                      fill
-                      sizes="56px"
-                      className="object-cover"
-                      priority={index === 0}
-                    />
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-[13.5px] font-semibold text-foreground">{tool.name}</span>
-                    <span className="text-[12px] text-muted-foreground">
-                      {shop.name} · {rental.days} day{rental.days > 1 ? "s" : ""}
-                    </span>
-                    <span className="text-[11.5px] text-muted-foreground">
-                      {isActive ? `Due ${rental.dueAt}` : `Returned ${rental.returnedAt}`}
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1.5">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                        isActive ? "bg-accent/25 text-accent-foreground" : "bg-primary/10 text-primary",
-                      )}
+    <>
+      <ActivityHeader current="/rentals" />
+      {rentals.length === 0 && holds.length === 0 ? (
+        <EmptyState
+          icon={Drill}
+          title="Nothing rented yet"
+          body="Tools you rent and parts you put on hold at a shop will appear here."
+          action={
+            <Link href="/category/tool-rental" className={buttonClass()}>
+              Browse tools
+            </Link>
+          }
+        />
+      ) : (
+        <div className="flex flex-col gap-6 px-4 pt-5">
+          {holds.length > 0 ? (
+            <section className="flex flex-col gap-3">
+              <h2 className="text-[17px] font-semibold">Parts on hold</h2>
+              <ul className="stagger flex flex-col gap-3">
+                {holds.map(({ reservation, shop }) => (
+                  <li key={reservation.id}>
+                    <Link
+                      href={`/reservation/${reservation.id}`}
+                      className="pressable flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3.5 hover:border-line-strong"
                     >
-                      {!isActive && <CheckCircle2 className="size-3" aria-hidden="true" />}
-                      {isActive ? "Active" : "Returned"}
-                    </span>
-                    <span className="text-[11.5px] font-semibold text-foreground">
-                      {formatINR(rental.dailyPrice * rental.days)}
-                    </span>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </div>
-    </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-[15px] font-semibold text-ink">{reservation.productName}</p>
+                        <p className="truncate text-[13px] text-ink-soft">
+                          {shop.name} · {formatINR(reservation.price)}
+                        </p>
+                      </div>
+                      <Pill tone="marigold">Until {formatTime(reservation.expiresAt)}</Pill>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {rentals.length > 0 ? (
+            <section className="flex flex-col gap-3">
+              {holds.length > 0 ? <h2 className="text-[17px] font-semibold">Tool rentals</h2> : null}
+              <ul className="stagger flex flex-col gap-3">
+                {rentals.map(({ rental, tool, shop }) => (
+                  <li key={rental.id}>
+                    <Link
+                      href={`/rental/${rental.id}`}
+                      className="pressable flex gap-3.5 rounded-2xl border border-line bg-surface p-3.5 hover:border-line-strong"
+                    >
+                      <ToolPhoto tool={tool} sizes="52px" className="size-[52px] border border-line" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="truncate font-sans text-[15px] font-semibold tracking-normal text-ink">{tool.name}</h3>
+                          <RentalStatusPill status={rental.status} />
+                        </div>
+                        <p className="truncate text-[13px] text-ink-soft">
+                          {shop.name} · {plural(rental.days, "day")}
+                        </p>
+                        <div className="mt-1.5 flex items-center justify-between text-[13px] text-ink-soft">
+                          <span>
+                            {rental.status === "active" && rental.dueAt
+                              ? `Due ${formatDateTime(rental.dueAt)}`
+                              : rental.status === "returned" && rental.returnedAt
+                                ? `Returned ${timeAgo(rental.returnedAt).toLowerCase()}`
+                                : `Reserved ${timeAgo(rental.createdAt).toLowerCase()}`}
+                          </span>
+                          <span className="tabular font-semibold text-ink">
+                            {formatINR(rental.dailyPrice * rental.days)}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+      )}
+    </>
   )
 }

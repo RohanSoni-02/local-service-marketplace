@@ -2,50 +2,37 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, ClipboardList, Drill, MessageCircle, UserRound, Building2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Building2, ClipboardList, Home, MessageCircle, UserRound } from "lucide-react"
 
 const tabs = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/bookings", label: "Bookings", icon: ClipboardList },
-  { href: "/rentals", label: "Rentals", icon: Drill },
-  { href: "/chat", label: "Chat", icon: MessageCircle },
-  { href: "/profile", label: "Profile", icon: UserRound },
-  { href: "/society", label: "Society", icon: Building2 },
+  { href: "/", label: "Home", icon: Home, match: ["/"] },
+  { href: "/bookings", label: "Activity", icon: ClipboardList, match: ["/bookings", "/rentals"] },
+  { href: "/society", label: "Society", icon: Building2, match: ["/society"] },
+  { href: "/chat", label: "Chats", icon: MessageCircle, match: ["/chat"] },
+  { href: "/profile", label: "Profile", icon: UserRound, match: ["/profile"] },
 ]
 
 export function BottomNav() {
   const pathname = usePathname()
-
   return (
     <nav
       aria-label="Primary"
-      className="shrink-0 border-t border-border bg-card px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1.5"
+      className="app-fixed bottom-0 z-30 border-t border-line bg-background pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="flex items-stretch justify-between">
-        {tabs.map((tab) => {
-          const active = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href)
-          const Icon = tab.icon
+      <ul className="grid grid-cols-5 px-2">
+        {tabs.map(({ href, label, icon: Icon, match }) => {
+          const active = match.some((path) => (path === "/" ? pathname === "/" : pathname.startsWith(path)))
           return (
-            <li key={tab.href} className="flex-1">
+            <li key={href}>
               <Link
-                href={tab.href}
-                className="flex flex-col items-center gap-1 rounded-xl px-1 py-1.5"
+                href={href}
                 aria-current={active ? "page" : undefined}
+                className="group flex h-16 flex-col items-center justify-center gap-1 text-ink-soft aria-[current=page]:text-brand-deep"
               >
-                <Icon
-                  className={cn("size-[22px]", active ? "text-primary" : "text-muted-foreground")}
-                  strokeWidth={active ? 2.4 : 1.9}
-                  aria-hidden="true"
-                />
-                <span
-                  className={cn(
-                    "text-[11px] font-medium leading-none",
-                    active ? "text-primary" : "text-muted-foreground",
-                  )}
-                >
-                  {tab.label}
+                <span className="flex h-7 w-14 items-center justify-center rounded-full transition-[background-color,transform] duration-200 ease-out-quint group-active:scale-90 group-aria-[current=page]:bg-brand-soft">
+                  <Icon className="size-[21px]" strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
                 </span>
+                <span className="text-[11.5px] font-semibold leading-none">{label}</span>
               </Link>
             </li>
           )

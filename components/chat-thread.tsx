@@ -1,122 +1,109 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Send, Phone } from "lucide-react"
-import type { ChatMessage, Shop } from "@/lib/mock-data"
-import { FlowHeader } from "@/components/flow-header"
+import { useEffect, useOptimistic, useRef, useState, useTransition } from "react"
+import { ArrowUp } from "lucide-react"
+import { toast } from "sonner"
+import { sendMessage } from "@/lib/actions/chat"
 import { cn } from "@/lib/utils"
 
-const autoReplies = [
-  "Sure, let me check and get back to you shortly.",
-  "Yes, that works. We'll have someone reach out.",
-  "Thanks for the details, noted!",
-]
+type ChatMessage = { id: string; sender: "user" | "shop"; text: string; time: string; day: string; sending?: boolean }
 
-export function ChatThread({ shop, initialMessages }: { shop: Shop; initialMessages: ChatMessage[] }) {
-  const router = useRouter()
-  const [messages, setMessages] = useState(initialMessages)
-  const [input, setInput] = useState("")
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const replyIndex = useRef(0)
+export function ChatThread({ shopId, shopName, messages }: { shopId: string; shopName: string; messages: ChatMessage[] }) {
+  const [draft, setDraft] = useState("")
+  const [, startTransition] = useTransition()
+  const [thread, addOptimistic] = useOptimistic(messages, (current, text: string) => [
+    ...current,
+    { id: `sending-${current.length}`, sender: "user" as const, text, time: "Sending…", day: "Today", sending: true },
+  ])
+  const endRef = useRef<HTMLDivElement>(null)
+  const count = thread.length
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
-  }, [messages])
+    endRef.current?.scrollIntoView({ block: "end" })
+  }, [count])
 
-  function sendMessage() {
-    const text = input.trim()
+  function send() {
+    const text = draft.trim()
     if (!text) return
-    const now = new Date()
-    const time = now.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })
-    setMessages((prev) => [
-      ...prev,
-      { id: `local-${prev.length}`, shopId: shop.id, sender: "user", text, time },
-    ])
-    setInput("")
-
-    setTimeout(() => {
-      const reply = autoReplies[replyIndex.current % autoReplies.length]
-      replyIndex.current += 1
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `local-${prev.length}`,
-          shopId: shop.id,
-          sender: "shop",
-          text: reply,
-          time: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }),
-        },
-      ])
-    }, 1400)
+    setDraft("")
+    startTransition(async () => {
+      addOptimistic(text)
+      const result = await sendMessage(shopId, text)
+      if (!result.ok) {
+        toast.error(result.error)
+        setDraft(text)
+      }
+    })
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="relative flex shrink-0 items-center border-b border-border bg-card">
-        <FlowHeader
-          title={shop.name}
-          subtitle={`${shop.distanceKm} km away`}
-          onClose={() => router.push("/chat")}
-          variant="close"
-          className="flex-1 border-0"
+    <>
+      <main className="flex min-h-[calc(100dvh-3.5rem)] flex-col justify-end gap-1 px-4 pb-24 pt-5">
+        {thread.length === 0 ? (
+          <p className="mx-auto max-w-[28ch] pb-10 text-center text-sm text-ink-soft">
+            Ask {shopName} about availability, pricing or parts before you book.
+          </p>
+        ) : null}
+        {thread.map((message, index) => {
+          const previous = thread[index - 1]
+          const mine = message.sender === "user"
+          const grouped = previous?.sender === message.sender && previous.day === message.day
+          return (
+            <div key={message.id} className="contents">
+              {previous?.day !== message.day ? (
+                <p className="py-3 text-center text-xs font-medium text-ink-faint">{message.day}</p>
+              ) : null}
+              <div className={cn("flex flex-col", mine ? "items-end" : "items-start", grouped ? "mt-0.5" : "mt-2.5")}>
+                <p
+                  className={cn(
+                    "max-w-[80%] animate-rise whitespace-pre-wrap break-words px-3.5 py-2.5 text-[15px] leading-snug [animation-duration:0.3s]",
+                    mine
+                      ? "rounded-[20px] rounded-br-md bg-brand text-on-brand"
+                      : "rounded-[20px] rounded-bl-md bg-sunken text-ink",
+                    message.sending && "opacity-70",
+                  )}
+                >
+                  {message.text}
+                </p>
+                {thread[index + 1]?.sender !== message.sender || thread[index + 1]?.day !== message.day ? (
+                  <span className="mt-1 px-1 text-[11px] text-ink-faint">{message.time}</span>
+                ) : null}
+              </div>
+            </div>
+          )
+        })}
+        <div ref={endRef} className="h-px scroll-mb-24" />
+      </main>
+
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          send()
+        }}
+        className="app-fixed bottom-0 z-30 flex items-end gap-2 border-t border-line bg-background px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3"
+      >
+        <label htmlFor="message" className="sr-only">
+          Message {shopName}
+        </label>
+        <input
+          id="message"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          maxLength={1000}
+          autoComplete="off"
+          enterKeyHint="send"
+          placeholder="Message"
+          className="h-12 flex-1 rounded-full border border-line-strong bg-surface px-4.5 text-[15px] placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/12"
         />
         <button
-          type="button"
-          aria-label="Call shop"
-          className="absolute right-4 flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-primary active:opacity-70"
+          type="submit"
+          aria-label="Send message"
+          disabled={!draft.trim()}
+          className="pressable flex size-12 shrink-0 items-center justify-center rounded-full bg-brand text-on-brand hover:bg-brand-deep disabled:bg-sunken disabled:text-ink-faint"
         >
-          <Phone className="size-4" aria-hidden="true" />
+          <ArrowUp className="size-5" strokeWidth={2.4} aria-hidden="true" />
         </button>
-      </div>
-
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="flex flex-col gap-2.5">
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={cn("flex flex-col gap-1", m.sender === "user" ? "items-end" : "items-start")}
-            >
-              <div
-                className={cn(
-                  "max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed",
-                  m.sender === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground",
-                )}
-              >
-                {m.text}
-              </div>
-              <span className="px-1 text-[10.5px] text-muted-foreground">{m.time}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="shrink-0 border-t border-border bg-card px-3 py-2.5">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            sendMessage()
-          }}
-          className="flex items-center gap-2"
-        >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-          <button
-            type="submit"
-            aria-label="Send message"
-            disabled={!input.trim()}
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40 active:opacity-90"
-          >
-            <Send className="size-4" aria-hidden="true" />
-          </button>
-        </form>
-      </div>
-    </div>
+      </form>
+    </>
   )
 }

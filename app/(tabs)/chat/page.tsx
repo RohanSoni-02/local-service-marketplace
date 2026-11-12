@@ -1,58 +1,53 @@
+import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
-import { chatMessages, getShop } from "@/lib/mock-data"
-import { VerifiedBadge } from "@/components/verified-badge"
+import { MessageCircle } from "lucide-react"
+import { formatDay, formatTime } from "@/lib/format"
+import { requireUser } from "@/lib/server/auth"
+import { listThreads } from "@/lib/server/chat"
+import { ShopPhoto } from "@/components/shop-photo"
+import { EmptyState } from "@/components/ui/misc"
 
-export default function ChatListPage() {
-  const threads = Object.entries(chatMessages)
-    .map(([shopId, messages]) => {
-      const shop = getShop(shopId)
-      const last = messages[messages.length - 1]
-      return shop && last ? { shop, last } : null
-    })
-    .filter((t): t is { shop: NonNullable<ReturnType<typeof getShop>>; last: (typeof chatMessages)[string][number] } => t !== null)
+export const metadata: Metadata = { title: "Chats" }
+
+export default async function ChatListPage() {
+  const user = await requireUser("/chat")
+  const threads = await listThreads(user.id)
+  const now = new Date()
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-border bg-card px-4 pb-3 pt-4">
-        <h1 className="font-heading text-[19px] font-bold text-foreground">Chats</h1>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        {threads.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-1 px-6 text-center">
-            <p className="text-[13.5px] font-medium text-foreground">No conversations yet</p>
-            <p className="text-[12.5px] text-muted-foreground">
-              Chats with shops open automatically once you book a service.
-            </p>
-          </div>
-        ) : (
-          <ul className="flex flex-col">
-            {threads.map(({ shop, last }) => (
-              <li key={shop.id} className="border-b border-border/70 last:border-0">
-                <Link
-                  href={`/chat/${shop.id}`}
-                  className="flex items-center gap-3 px-4 py-3.5 active:bg-secondary/60"
-                >
-                  <div className="relative size-12 shrink-0 overflow-hidden rounded-full bg-muted">
-                    <Image src={shop.photo || "/placeholder.svg"} alt={shop.name} fill sizes="48px" className="object-cover" />
+    <>
+      <header className="px-4 pt-6">
+        <h1 className="text-[28px] font-bold leading-none">Chats</h1>
+      </header>
+      {threads.length === 0 ? (
+        <EmptyState
+          icon={MessageCircle}
+          title="No conversations yet"
+          body="Message a shop from its page, or chat opens automatically once a shop accepts your request."
+        />
+      ) : (
+        <ul className="stagger mt-3 divide-y divide-line">
+          {threads.map(({ shop, last }) => (
+            <li key={shop.id}>
+              <Link href={`/chat/${shop.id}`} className="flex items-center gap-3.5 px-4 py-3.5 transition-colors duration-150 hover:bg-sunken active:bg-sunken">
+                <ShopPhoto shop={shop} sizes="48px" className="size-12 shrink-0 rounded-full" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h2 className="truncate font-sans text-[15px] font-semibold tracking-normal text-ink">{shop.name}</h2>
+                    <time className="shrink-0 text-xs text-ink-soft">
+                      {formatDay(last.createdAt, now) === "Today" ? formatTime(last.createdAt) : formatDay(last.createdAt, now)}
+                    </time>
                   </div>
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="truncate text-[13.5px] font-semibold text-foreground">{shop.name}</span>
-                      <VerifiedBadge tier={shop.tier} compact />
-                    </div>
-                    <span className="truncate text-[12.5px] text-muted-foreground">
-                      {last.sender === "user" ? "You: " : ""}
-                      {last.text}
-                    </span>
-                  </div>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{last.time}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+                  <p className="truncate text-sm text-ink-soft">
+                    {last.sender === "user" ? "You: " : ""}
+                    {last.text}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   )
 }
