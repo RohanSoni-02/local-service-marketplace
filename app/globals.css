@@ -1,165 +1,191 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
+@import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * Thikana design tokens.
+ * Warm paper neutrals tinted toward the brand hue, one deep green for action,
+ * marigold reserved for ratings and gold-tier trust marks.
+ */
+@theme {
+  --font-sans: "Onest Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Onest Variable", ui-sans-serif, system-ui, sans-serif;
 
-@theme inline {
-  --font-sans: var(--font-body), ui-sans-serif, system-ui;
-  --font-heading: var(--font-heading), ui-sans-serif, system-ui;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
+  --color-backdrop: oklch(0.925 0.014 95);
+  --color-background: oklch(0.975 0.008 95);
+  --color-surface: oklch(0.995 0.004 95);
+  --color-sunken: oklch(0.948 0.012 95);
+  --color-line: oklch(0.905 0.012 95);
+  --color-line-strong: oklch(0.84 0.014 95);
 
-:root {
-  color-scheme: light;
-  --background: oklch(0.975 0.006 85);
-  --foreground: oklch(0.22 0.02 165);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 165);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 165);
-  --primary: oklch(0.32 0.06 165);
-  --primary-foreground: oklch(0.98 0.006 85);
-  --secondary: oklch(0.95 0.012 85);
-  --secondary-foreground: oklch(0.32 0.06 165);
-  --muted: oklch(0.94 0.01 85);
-  --muted-foreground: oklch(0.5 0.02 165);
-  --accent: oklch(0.74 0.14 68);
-  --accent-foreground: oklch(0.24 0.04 60);
-  --destructive: oklch(0.577 0.215 27.325);
-  --border: oklch(0.89 0.012 85);
-  --input: oklch(0.89 0.012 85);
-  --ring: oklch(0.32 0.06 165);
-  --chart-1: oklch(0.32 0.06 165);
-  --chart-2: oklch(0.74 0.14 68);
-  --chart-3: oklch(0.6 0.1 165);
-  --chart-4: oklch(0.5 0.02 165);
-  --chart-5: oklch(0.85 0.01 85);
-  --radius: 1.1rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.22 0.02 165);
-  --sidebar-primary: oklch(0.32 0.06 165);
-  --sidebar-primary-foreground: oklch(0.98 0.006 85);
-  --sidebar-accent: oklch(0.95 0.012 85);
-  --sidebar-accent-foreground: oklch(0.32 0.06 165);
-  --sidebar-border: oklch(0.89 0.012 85);
-  --sidebar-ring: oklch(0.32 0.06 165);
-}
+  --color-ink: oklch(0.22 0.025 165);
+  --color-ink-soft: oklch(0.44 0.022 165);
+  --color-ink-faint: oklch(0.58 0.018 165);
 
-.dark {
-  color-scheme: dark;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
+  --color-brand: oklch(0.37 0.075 165);
+  --color-brand-deep: oklch(0.28 0.058 165);
+  --color-brand-soft: oklch(0.94 0.032 165);
+  --color-on-brand: oklch(0.985 0.012 95);
 
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark;
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+  --color-marigold: oklch(0.8 0.15 78);
+  --color-marigold-soft: oklch(0.95 0.055 88);
+  --color-marigold-ink: oklch(0.4 0.09 65);
+
+  --color-danger: oklch(0.52 0.19 27);
+  --color-danger-soft: oklch(0.955 0.028 27);
+
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+
+  --shadow-card: 0 1px 2px oklch(0.22 0.025 165 / 0.05), 0 6px 20px -10px oklch(0.22 0.025 165 / 0.12);
+  --shadow-float: 0 2px 6px oklch(0.22 0.025 165 / 0.08), 0 16px 36px -14px oklch(0.22 0.025 165 / 0.28);
+
+  --animate-rise: rise 0.5s var(--ease-out-quint) both;
+  --animate-fade: fade 0.3s ease-out both;
+  --animate-radar: radar 2.4s var(--ease-out-quint) infinite;
+  --animate-pop: pop 0.35s var(--ease-out-quint) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes radar {
+    from {
+      opacity: 0.55;
+      transform: scale(0.35);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
   }
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  html {
+    background: var(--color-backdrop);
+    color: var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
   }
   body {
-    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  button,
+  [role="button"],
+  summary {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  ::selection {
+    background: var(--color-brand-soft);
+  }
+}
+
+/* Tactile press feedback: a quick, small scale — never from zero. */
+@utility pressable {
+  transition:
+    transform 160ms var(--ease-out-quint),
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    opacity 160ms ease-out;
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/* Children enter one after another; set --i on a child to override its slot. */
+@utility stagger {
+  & > * {
+    animation: rise 0.5s var(--ease-out-quint) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+  & > *:nth-child(2) { --i: 1; }
+  & > *:nth-child(3) { --i: 2; }
+  & > *:nth-child(4) { --i: 3; }
+  & > *:nth-child(5) { --i: 4; }
+  & > *:nth-child(6) { --i: 5; }
+  & > *:nth-child(7) { --i: 6; }
+  & > *:nth-child(n + 8) { --i: 7; }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Keeps fixed bars aligned with the centred app column. */
+@utility app-fixed {
+  position: fixed;
+  left: 50%;
+  width: 100%;
+  max-width: 30rem;
+  translate: -50% 0;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Leaflet, restyled to sit inside the app. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--color-sunken);
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: oklch(0.995 0.004 95 / 0.8) !important;
+}
+.leaflet-bar {
+  border: none !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.leaflet-bar a {
+  color: var(--color-ink) !important;
+  background: var(--color-surface) !important;
+  border-color: var(--color-line) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

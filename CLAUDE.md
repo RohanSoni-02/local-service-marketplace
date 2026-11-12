@@ -1,86 +1,48 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
-## Development Commands
+## Commands
 
-- `pnpm dev` - Start the development server at http://localhost:3000
-- `pnpm build` - Build the production application
-- `pnpm start` - Start the production server
-- `pnpm lint` - Run ESLint to check for code issues
+- `pnpm dev` — migrate/seed the local database if needed, then start the dev server at http://localhost:3000
+- `pnpm build` / `pnpm start` — production build and server
+- `pnpm lint` — ESLint (flat config, `eslint-config-next`)
+- `pnpm typecheck` — `tsc --noEmit`; type errors also fail the build
+- `pnpm db:generate` — generate a Drizzle migration after changing `lib/db/schema.ts`
+- `pnpm db:setup` — apply migrations and seed an empty database
 
-## Project Structure
+## Structure
 
-- `/app` - Next.js App Router directory containing all routes and layouts
-  - `/app/(tabs)` - Tab-based layout for bottom navigation (Bookings, Chat, Profile, Rentals)
-  - `/app/category/[id]` - Dynamic route for category pages showing shops
-  - `/app/chat/[id]` - Dynamic route for chat threads with a specific shop
-  - `/app/shop/[id]` - Dynamic route for shop profile pages
-    - `/app/shop/[id]/book` - Service booking flow
-    - `/app/shop/[id]/rent/[toolId]` - Tool rental flow
-  - `/app/(tabs)/bookings` - User's booking history
-  - `/app/(tabs)/rentals` - User's rental history
-- `/components` - Reusable UI components
-  - `/components/ui` - Primitive UI components (Button, Card, Dialog, etc.)
-  - Domain-specific components (BookingFlow, RentalFlow, ChatThread, ShopCard, etc.)
-- `/lib` - Utility functions and mock data
-  - `mock-data.ts` - Contains all mock data (categories, shops, tools, bookings, etc.) and helper functions
-  - `format.ts` - Formatting utilities (INR currency)
-  - `utils.ts` - Utility functions (cn for class merging)
-- `/public` - Static assets (images, icons)
-- `/styles` - Global CSS and Tailwind configuration (in app/globals.css and tailwind.config is implicit via dependencies)
+- `app/` — App Router routes
+  - `(tabs)/` — screens with the bottom nav: home, `bookings`, `rentals`, `society`, `chat`, `profile`
+  - `(auth)/` — `login`, `signup`
+  - `category/[id]`, `shop/[id]`, `shop/[id]/book`, `shop/[id]/rent/[toolId]`
+  - `booking/[id]`, `rental/[id]`, `reservation/[id]`, `chat/[id]`, `search`, `help`
+- `components/` — feature components; `components/ui/` — primitives (Button, Field, Sheet, Segmented, TopBar, misc)
+- `lib/db/` — Drizzle schema, client, seed data · `drizzle/` — generated SQL migrations (commit these)
+- `lib/server/` — server-only reads and domain logic (`import "server-only"`)
+- `lib/actions/` — Server Actions (`"use server"`), validated with zod
+- `lib/catalog.ts` — static categories, issue types, service area · `lib/format.ts` — INR, dates (IST), distance
 
-## Key Architectural Notes
+## Architecture notes
 
-- **Routing**: Uses Next.js App Router with file-system based routing. Dynamic routes use bracket notation (e.g., `[id]`).
-- **Layouts**: 
-  - Root layout (`app/layout.tsx`) sets up fonts, metadata, and wraps children in `<PhoneFrame>`.
-  - Tab layout (`app/(tabs)/layout.tsx`) provides the bottom navigation (`<BottomNav/>`) and wraps tab content.
-- **Styling**: 
-  - Tailwind CSS v4 with custom theme defined in `app/globals.css`.
-  - Uses CSS variables for light/dark mode and theme colors.
-  - `tw-animate-css` for animations and `shadcn/ui` for accessible component primitives.
-- **Data**: 
-  - Development uses mock data from `lib/mock-data.ts` which simulates APIs.
-  - Data fetching is done directly from these mocks in route loaders (no external API calls).
-- **Components**: 
-  - Follows a pattern of colocation: components used primarily by a feature are often near that feature.
-  - Reusable UI primitives are in `/components/ui`.
-  - Formatting and utility functions are in `/lib`.
-- **TypeScript**: 
-  - Strict TypeScript configuration (`tsconfig.json` with `strict: true`).
-  - Path alias `@/*` mapped to root for absolute imports (e.g., `@/components/button.tsx`).
+- **Data**: SQLite through libSQL. `TURSO_DATABASE_URL` unset → local file `./data/thikana.db`. Pages read via `lib/server/*` in Server Components; mutations go through `lib/actions/*`.
+- **Auth**: phone + password. `getUser()` / `requireUser(returnTo)` in `lib/server/auth.ts`. Every action re-checks the session and scopes queries by `userId`.
+- **Shop simulator**: there is no merchant app, so `lib/server/simulator.ts` decides how shops respond (offers, counters, job progress, chat replies, society quotes). It is pure; `lib/server/bookings.ts`, `chat.ts` and `society.ts` apply outcomes lazily when data is read. `SIMULATE_SHOPS=false` disables it.
+- **Live screens** poll with `<AutoRefresh />` (`router.refresh()` on an interval) rather than websockets.
+- **Concurrency**: state changes use guarded updates (`WHERE status = …`) and unique keys so racing requests can't double-apply.
+- **Time**: render timestamps with `lib/format.ts` (fixed to Asia/Kolkata) so server and client output match. Don't call `Date.now()` in a component body; take the time from the data layer.
 
-## Common Development Tasks
+## Design system
 
-- Adding a new route: Create a folder under `/app` with the route path, add `page.tsx` and optionally `loading.tsx` or `error.tsx`.
-- Adding a new component: 
-  - For UI primitives (buttons, inputs, etc.), add to `/components/ui`.
-  - For feature-specific components, place near the feature (e.g., booking-related components near booking flows).
-- Styling: 
-  - Use Tailwind utility classes directly.
-  - For custom CSS variables, modify `app/globals.css`.
-  - Extend Tailwind configuration via `tailwind.config.js` if needed (not present, uses default with CSS variable overrides).
-- State Management: 
-  - Currently uses React state within components (no global state library).
-  - Data is fetched per route from mock data; mutations would update local state or mocks (not persisted).
+- Tokens live in `@theme` in `app/globals.css`: warm paper neutrals (`background`, `surface`, `sunken`, `line`), `ink` text scale, `brand` green for actions, `marigold` for ratings and gold-tier marks only, `danger`.
+- Type: Bricolage Grotesque (`font-display`, headings) and Onest (body), self-hosted via `@fontsource-variable`.
+- Motion: `ease-out-quint`, under 500ms, transform/opacity only. Use `pressable` for press feedback, `animate-rise` / `stagger` for entrances. Reduced motion is honoured globally.
+- Layout is a single centred column (`max-w-[30rem]`); fixed bars use the `app-fixed` utility. Flow screens use `<TopBar>` + `<ActionBar>`; confirmations and short forms use `<Sheet>`.
+- `buttonClass()` (in `components/ui/button-class.ts`) styles links as buttons and is safe to call from Server Components.
 
-## Code Conventions
+## Conventions
 
-- Component naming: PascalCase (e.g., `ShopCard`, `BookingFlow`).
-- File naming: 
-  - Route files: `page.tsx`, `layout.tsx`.
-  - Components: PascalCase matching component name (e.g., `button.tsx`).
-  - Utilities: camelCase (e.g., `format.ts`, `utils.ts`).
-- Imports: 
-  - Use `@/` alias for absolute imports (e.g., `@/components/button`).
-  - Relative imports for files within the same directory.
-- Exporting: 
-  - Default export for route pages and layouts.
-  - Named exports for utilities and helper functions.
-
-## Maintenance
-
-- ESLint configuration is inferred from Next.js and TypeScript defaults; no separate config file visible.
-- TypeScript type checking is disabled during builds (`ignoreBuildErrors: true` in next.config.mjs) but enabled in IDE via `tsc`.
-- Mock data is the source of truth for development; to simulate API changes, update `lib/mock-data.ts`.
+- Files kebab-case, components PascalCase, `@/` alias for imports.
+- Default exports for route files, named exports elsewhere.
+- Server Actions return `FormState` (forms, via `useActionState`) or `ActionResult` (buttons, via `useAction`).

@@ -1,12 +1,22 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { getShop, getTool } from "@/lib/mock-data"
-import { RentalFlow } from "@/components/rental-flow"
+import { requireUser } from "@/lib/server/auth"
+import { getShop, getTool } from "@/lib/server/shops"
+import { RentalForm } from "@/components/rental-form"
+import { TopBar } from "@/components/ui/top-bar"
 
-export default async function RentToolPage({ params }: { params: Promise<{ id: string; toolId: string }> }) {
+export const metadata: Metadata = { title: "Rent a tool" }
+
+export default async function RentPage({ params }: { params: Promise<{ id: string; toolId: string }> }) {
   const { id, toolId } = await params
-  const shop = getShop(id)
-  const tool = getTool(toolId)
+  await requireUser(`/shop/${id}/rent/${toolId}`)
+  const [shop, tool] = await Promise.all([getShop(id), getTool(toolId)])
   if (!shop || !tool || tool.shopId !== shop.id) notFound()
 
-  return <RentalFlow tool={tool} shop={shop} />
+  return (
+    <>
+      <TopBar title="Rent this tool" subtitle={shop.name} fallback={`/shop/${id}`} />
+      <RentalForm tool={tool} shopName={shop.name} />
+    </>
+  )
 }

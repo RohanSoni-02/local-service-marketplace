@@ -1,68 +1,79 @@
+import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
-import { ChevronRight, ClipboardList } from "lucide-react"
-import { bookingHistory, getShop } from "@/lib/mock-data"
-import { StatusPill } from "@/components/status-pill"
-import { StarRating } from "@/components/star-rating"
-import { formatINR } from "@/lib/format"
+import { ClipboardList, Star } from "lucide-react"
+import { formatDateTime, formatINR, timeAgo } from "@/lib/format"
+import { requireUser } from "@/lib/server/auth"
+import { ACTIVE_STATUSES, listBookings } from "@/lib/server/bookings"
+import { ActivityHeader } from "@/components/activity-header"
+import { AutoRefresh } from "@/components/auto-refresh"
+import { ShopPhoto } from "@/components/shop-photo"
+import { BookingStatusPill } from "@/components/status"
+import { buttonClass } from "@/components/ui/button-class"
+import { EmptyState } from "@/components/ui/misc"
 
-export default function BookingsPage() {
+export const metadata: Metadata = { title: "Activity" }
+
+export default async function BookingsPage() {
+  const user = await requireUser("/bookings")
+  const rows = await listBookings(user.id)
+  const anyLive = rows.some(({ booking }) => (ACTIVE_STATUSES as readonly string[]).includes(booking.status))
+
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-border bg-card px-4 pb-3 pt-4">
-        <h1 className="font-heading text-[19px] font-bold text-foreground">My Bookings</h1>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {bookingHistory.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-            <ClipboardList className="size-8 text-muted-foreground" aria-hidden="true" />
-            <p className="text-[13.5px] font-medium text-foreground">No bookings yet</p>
-          </div>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {bookingHistory.map((booking) => {
-              const shop = getShop(booking.shopId)
-              if (!shop) return null
-              return (
-                <li key={booking.id}>
-                  <Link
-                    href={booking.status === "cancelled" ? "#" : `/chat/${shop.id}`}
-                    className="flex flex-col gap-3 rounded-2xl bg-card p-3.5 shadow-sm ring-1 ring-border active:opacity-90"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-muted">
-                        <Image src={shop.photo || "/placeholder.svg"} alt={shop.name} fill sizes="48px" className="object-cover" />
-                      </div>
-                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-[13.5px] font-semibold text-foreground">{shop.name}</span>
-                          <StatusPill status={booking.status} />
-                        </div>
-                        <span className="text-[12.5px] text-muted-foreground">{booking.issueType}</span>
-                        <span className="text-[11.5px] text-muted-foreground">
-                          {booking.mode === "Scheduled" ? booking.scheduledFor : booking.createdAt}
+    <>
+      <ActivityHeader current="/bookings" />
+      {anyLive ? <AutoRefresh intervalMs={5000} /> : null}
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="No visits yet"
+          body="When you request a plumber, electrician or any other service, it shows up here."
+          action={
+            <Link href="/" className={buttonClass()}>
+              Browse services
+            </Link>
+          }
+        />
+      ) : (
+        <ul className="stagger flex flex-col gap-3 px-4 pt-5">
+          {rows.map(({ booking, shop, rating }) => (
+            <li key={booking.id}>
+              <Link
+                href={`/booking/${booking.id}`}
+                className="pressable flex gap-3.5 rounded-2xl border border-line bg-surface p-3.5 hover:border-line-strong"
+              >
+                <ShopPhoto shop={shop} sizes="52px" className="size-[52px] shrink-0 rounded-xl" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h2 className="truncate font-sans text-[15px] font-semibold tracking-normal text-ink">
+                      {booking.issueType}
+                    </h2>
+                    <BookingStatusPill status={booking.status} />
+                  </div>
+                  <p className="truncate text-[13px] text-ink-soft">{shop.name}</p>
+                  <div className="mt-1.5 flex items-center justify-between gap-2 text-[13px] text-ink-soft">
+                    <span>
+                      {booking.scheduledAt && booking.status === "accepted"
+                        ? formatDateTime(booking.scheduledAt)
+                        : timeAgo(booking.createdAt)}
+                    </span>
+                    <span className="flex items-center gap-2.5">
+                      {rating ? (
+                        <span className="tabular inline-flex items-center gap-1 font-semibold text-ink">
+                          <Star className="size-3.5 fill-marigold text-marigold" aria-hidden="true" />
+                          {rating}
                         </span>
-                      </div>
-                    </div>
-
-                    {booking.status === "completed" && (
-                      <div className="flex items-center justify-between border-t border-border pt-2.5">
-                        <div className="flex items-center gap-2">
-                          {booking.userRating ? <StarRating rating={booking.userRating} size="sm" /> : null}
-                          {booking.cost ? (
-                            <span className="text-[12px] font-semibold text-foreground">{formatINR(booking.cost)}</span>
-                          ) : null}
-                        </div>
-                        <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
-                      </div>
-                    )}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </div>
-    </div>
+                      ) : null}
+                      {booking.price != null ? (
+                        <span className="tabular font-semibold text-ink">{formatINR(booking.price)}</span>
+                      ) : null}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   )
 }

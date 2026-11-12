@@ -1,16 +1,7 @@
-import {
-  Wrench,
-  Zap,
-  Hammer,
-  Fan,
-  Store,
-  Drill,
-  Paintbrush,
-  WashingMachine,
-  type LucideProps,
-} from "lucide-react"
+import { Drill, Fan, Hammer, Paintbrush, Store, WashingMachine, Wrench, Zap, type LucideProps } from "lucide-react"
+import { getCategory } from "@/lib/catalog"
 
-const iconMap: Record<string, React.ComponentType<LucideProps>> = {
+const icons: Record<string, React.ComponentType<LucideProps>> = {
   wrench: Wrench,
   zap: Zap,
   hammer: Hammer,
@@ -21,7 +12,7 @@ const iconMap: Record<string, React.ComponentType<LucideProps>> = {
   "washing-machine": WashingMachine,
 }
 
-export function CategoryIcon({ icon, className }: { icon: string; className?: string }) {
-  const Icon = iconMap[icon] ?? Store
-  return <Icon className={className} aria-hidden="true" />
+export function CategoryIcon({ categoryId, ...props }: { categoryId: string } & LucideProps) {
+  const Icon = icons[getCategory(categoryId)?.icon ?? "store"] ?? Store
+  return <Icon aria-hidden="true" strokeWidth={1.8} {...props} />
 }
