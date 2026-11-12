@@ -4,7 +4,9 @@ import { categories, serviceArea } from "@/lib/catalog"
 import { formatDateTime } from "@/lib/format"
 import { getUser } from "@/lib/server/auth"
 import { getActiveBooking } from "@/lib/server/bookings"
+import { searchListings } from "@/lib/server/listings"
 import { listShops } from "@/lib/server/shops"
+import { ListingCard } from "@/components/listing-bits"
 import { CategoryIcon } from "@/components/category-icon"
 import { AutoRefresh } from "@/components/auto-refresh"
 import { ShopExplorer } from "@/components/shop-explorer"
@@ -15,7 +17,11 @@ import { Avatar } from "@/components/ui/misc"
 
 export default async function HomePage() {
   const user = await getUser()
-  const [shops, active] = await Promise.all([listShops(), user ? getActiveBooking(user.id) : null])
+  const [shops, active, lendable] = await Promise.all([
+    listShops(),
+    user ? getActiveBooking(user.id) : null,
+    searchListings({ limit: 8 }),
+  ])
   const nearby = shops.filter((shop) => shop.distanceKm <= serviceArea.radiusKm).slice(0, 8)
   const firstName = user?.name.split(/\s+/)[0]
 
@@ -144,6 +150,26 @@ export default async function HomePage() {
           />
         </span>
       </Link>
+
+      {lendable.length > 0 ? (
+        <section className="flex flex-col gap-3.5">
+          <div className="flex items-end justify-between gap-3 px-4">
+            <div>
+              <h2 className="text-[17px] font-semibold text-ink">Borrow from neighbours</h2>
+              <p className="text-[13px] text-ink-soft">By the day, with a refundable bond</p>
+            </div>
+            <Link href="/neighbours" className="flex items-center gap-1 text-sm font-semibold text-brand-deep">
+              See all
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="no-scrollbar flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1">
+            {lendable.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} className="w-44 shrink-0 snap-start" />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <ShopExplorer
         title="Shops near you"

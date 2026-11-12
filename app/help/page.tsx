@@ -43,6 +43,10 @@ const faqs = [
     a: "The shop holds it while the tool is with you and returns it in full when the tool comes back in the condition you received it.",
   },
   {
+    q: "How does the bond work when I borrow from a neighbour?",
+    a: "You hand the owner the bond in cash or by UPI when you collect, and they enter your handover code to record that they hold it. When the item is back in the same condition the owner returns it in full. If something is damaged they can keep part of it, and must state the amount and reason, which you can see on the loan. Thikana records the bond but does not hold the money.",
+  },
+  {
     q: "How long is a part held for me?",
     a: "Two hours from when you tap Hold. After that it goes back on the shelf automatically.",
   },

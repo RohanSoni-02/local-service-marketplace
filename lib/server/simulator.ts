@@ -23,6 +23,10 @@ export const timing = {
   jobMs: 25_000,
   chatReplyMs: 2_500,
   groupOfferMs: 8_000,
+  /** Seeded neighbours (users.isSeed) can't use the app, so their side of a loan is played for them. */
+  peerApproveMs: 5_000,
+  peerHandoverMs: 8_000,
+  peerSettleMs: 6_000,
 }
 
 /** Stable pseudo-random number in [0, 1) derived from a string. */
