@@ -18,6 +18,8 @@ Guidance for Claude Code when working in this repository.
   - `(auth)/` — `login`, `signup`
   - `category/[id]`, `shop/[id]`, `shop/[id]/book`, `shop/[id]/rent/[toolId]`
   - `booking/[id]`, `rental/[id]`, `reservation/[id]`, `chat/[id]`, `search`, `help`
+  - `neighbours` (peer marketplace, list/map), `neighbours/new`, `neighbours/[id]`, `loan/[id]`, `(tabs)/lending`
+  - `listing-photo/[id]` — route handler serving uploaded listing photos from the database
 - `components/` — feature components; `components/ui/` — primitives (Button, Field, Sheet, Segmented, TopBar, misc)
 - `lib/db/` — Drizzle schema, client, seed data · `drizzle/` — generated SQL migrations (commit these)
 - `lib/server/` — server-only reads and domain logic (`import "server-only"`)
@@ -29,6 +31,8 @@ Guidance for Claude Code when working in this repository.
 - **Data**: SQLite through libSQL. `TURSO_DATABASE_URL` unset → local file `./data/thikana.db`. Pages read via `lib/server/*` in Server Components; mutations go through `lib/actions/*`.
 - **Auth**: phone + password. `getUser()` / `requireUser(returnTo)` in `lib/server/auth.ts`. Every action re-checks the session and scopes queries by `userId`.
 - **Shop simulator**: there is no merchant app, so `lib/server/simulator.ts` decides how shops respond (offers, counters, job progress, chat replies, society quotes). It is pure; `lib/server/bookings.ts`, `chat.ts` and `society.ts` apply outcomes lazily when data is read. `SIMULATE_SHOPS=false` disables it.
+- **Neighbour lending**: `listings` + `peer_rentals` (`lib/server/listings.ts`, `lib/actions/listings.ts`). Loan states: requested → approved → active → returned → closed (or declined/cancelled). The owner confirms handover with the borrower's code and settles the bond (`bondStatus`, `bondWithheld`, `claimNote`). Only loans whose owner has `users.isSeed` are simulated. Listing coordinates are rounded to 3 decimals before saving; phone numbers are exposed only while a loan is approved/active/returned.
+- **Map**: `components/map-view.tsx` is a generic pin map (`points`, `selectedId`, `onSelect`); the parent renders the selected card. `location-picker.tsx` is the draggable-pin input.
 - **Live screens** poll with `<AutoRefresh />` (`router.refresh()` on an interval) rather than websockets.
 - **Concurrency**: state changes use guarded updates (`WHERE status = …`) and unique keys so racing requests can't double-apply.
 - **Time**: render timestamps with `lib/format.ts` (fixed to Asia/Kolkata) so server and client output match. Don't call `Date.now()` in a component body; take the time from the data layer.

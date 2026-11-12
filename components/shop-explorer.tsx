@@ -25,6 +25,8 @@ export function ShopExplorer({
   layout: "carousel" | "list"
 }) {
   const [view, setView] = useState<"list" | "map">("list")
+  const [selectedId, setSelectedId] = useState<string | null>(shops[0]?.id ?? null)
+  const selected = shops.find((shop) => shop.id === selectedId)
 
   return (
     <section className="flex flex-col gap-3.5">
@@ -45,8 +47,17 @@ export function ShopExplorer({
       </div>
 
       {view === "map" ? (
-        <div className="px-4">
-          <MapView shops={shops} />
+        <div className="flex flex-col gap-3 px-4">
+          <MapView
+            points={shops.map((shop) => ({ id: shop.id, latitude: shop.latitude, longitude: shop.longitude, label: shop.name }))}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
+          {selected ? (
+            <div key={selected.id} className="animate-rise">
+              <ShopRow shop={selected} />
+            </div>
+          ) : null}
         </div>
       ) : layout === "carousel" ? (
         <div className="no-scrollbar stagger flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1">

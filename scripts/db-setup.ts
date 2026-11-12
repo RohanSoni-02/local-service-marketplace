@@ -5,10 +5,12 @@
 import { count } from "drizzle-orm"
 import { migrate } from "drizzle-orm/libsql/migrator"
 import { db, schema } from "@/lib/db"
-import { buildSeed } from "@/lib/db/seed-data"
+import { buildNeighbourSeed, buildSeed } from "@/lib/db/seed-data"
 
 async function main() {
   await migrate(db, { migrationsFolder: "drizzle" })
+
+  await seedNeighbours()
 
   const [{ total }] = await db.select({ total: count() }).from(schema.shops)
   if (total > 0) {
@@ -27,6 +29,18 @@ async function main() {
     db.insert(schema.groupOffers).values(seed.groupOffers),
   ])
   console.log(`Database migrated and seeded with ${seed.shops.length} shops.`)
+}
+
+/** Seeded separately so databases created before neighbour lending existed pick it up. */
+async function seedNeighbours() {
+  const [{ total }] = await db.select({ total: count() }).from(schema.listings)
+  if (total > 0) return
+  const seed = buildNeighbourSeed()
+  await db.batch([
+    db.insert(schema.users).values(seed.users).onConflictDoNothing(),
+    db.insert(schema.listings).values(seed.listings).onConflictDoNothing(),
+  ])
+  console.log(`Seeded ${seed.listings.length} neighbour listings.`)
 }
 
 main().catch((error) => {

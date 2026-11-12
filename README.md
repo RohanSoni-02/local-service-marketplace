@@ -1,6 +1,6 @@
 # Thikana
 
-A mobile-first marketplace for local trades: request a home visit and compare offers from nearby shops, rent tools by the day, hold a part at a hardware counter, and pool service requests with your housing society.
+A mobile-first marketplace for local trades: request a home visit and compare offers from nearby shops, rent tools by the day, borrow things from neighbours against a refundable bond, hold a part at a hardware counter, and pool service requests with your housing society.
 
 ## Stack
 
@@ -40,10 +40,19 @@ A local SQLite file will not work on serverless hosts — the filesystem is read
 
 There is no merchant-side app yet, so nothing would answer a customer's request. `lib/server/simulator.ts` stands in for shops: it decides what they quote, whether they accept a counter-offer, how a job progresses, and sends chat replies and society quotes. Outcomes are written to the database like real ones. Set `SIMULATE_SHOPS=false` once real shops are responding.
 
+Seeded neighbour listings belong to placeholder accounts that cannot sign in, so the simulator also plays the owner's side of those loans (approve, hand over, return the bond). Loans between two real accounts are never simulated.
+
+## Neighbour lending and the bond
+
+Anyone can list an item with a daily price, a refundable bond and an approximate pickup pin (rounded to about 100 m). A borrower requests it, the owner approves, and at pickup the owner types the borrower's 4-digit code to record that the item and bond changed hands. On return the owner either releases the bond in full or keeps part of it with a written reason the borrower can see. The app records the bond; the money itself moves between the two people in cash or UPI. There is no escrow and no dispute mediation yet.
+
+Listing photos are resized in the browser to a small JPEG and stored in the database, so no file-storage service is needed.
+
 ## Before a public launch
 
 - Verify phone numbers with an SMS OTP (accounts are currently unverified).
 - Build the merchant app, then turn the simulator off.
 - Replace the seed catalogue (`lib/db/seed-data.ts`) — shop names, phone numbers and stock are placeholders.
 - Add terms of service and a privacy policy.
-- Payments are settled directly with the shop; add a gateway if in-app payment is wanted.
+- Payments and bonds are settled directly between people; add a gateway with escrow if the bond should be held in-app, and a dispute process for contested deductions.
+- Add moderation and reporting for neighbour listings.

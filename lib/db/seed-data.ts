@@ -363,3 +363,43 @@ export function buildSeed(now = Date.now()) {
 
   return { shops, reviews, tools, inventory, societies, groupRequests, groupOffers }
 }
+
+/**
+ * Placeholder neighbours and their listings, so the lending marketplace isn't
+ * empty at launch. These accounts cannot sign in; lib/server/simulator.ts
+ * answers borrow requests on their behalf. Remove once real listings exist.
+ */
+export function buildNeighbourSeed() {
+  const neighbours = [
+    { id: "seed-user-1", name: "Aarav Malhotra", address: "C-12, Lajpat Nagar II" },
+    { id: "seed-user-2", name: "Simran Kaur", address: "41, Amar Colony" },
+    { id: "seed-user-3", name: "Imran Qureshi", address: "E-7, Lajpat Nagar III" },
+    { id: "seed-user-4", name: "Pooja Nair", address: "18, Dayanand Colony" },
+  ]
+  const users: (typeof schema.users.$inferInsert)[] = neighbours.map((neighbour, index) => ({
+    ...neighbour,
+    phone: `000000000${index + 1}`,
+    passwordHash: "!",
+    pincode: serviceArea.pincode,
+    isSeed: true,
+  }))
+
+  const at = (dLat: number, dLng: number) => ({
+    area: serviceArea.name,
+    latitude: Math.round((serviceArea.latitude + dLat) * 1000) / 1000,
+    longitude: Math.round((serviceArea.longitude + dLng) * 1000) / 1000,
+  })
+
+  const listings: (typeof schema.listings.$inferInsert)[] = [
+    { id: "listing-1", ownerId: "seed-user-1", title: "PlayStation 5 with two controllers", description: "Disc edition with FC 25 and Spider-Man 2. HDMI cable and both DualSense controllers included.", category: "gaming", condition: "Like new", dailyPrice: 600, bond: 5000, ...at(0.004, -0.003) },
+    { id: "listing-2", ownerId: "seed-user-2", title: "Bean bags, set of 4 (XXL)", description: "Four filled XXL bean bags, covers freshly washed. Great for movie nights and house parties.", category: "party", condition: "Good", dailyPrice: 250, bond: 1000, ...at(-0.006, 0.004) },
+    { id: "listing-3", ownerId: "seed-user-2", title: "JBL PartyBox speaker", description: "Loud enough for a terrace party, with a wired mic. About 12 hours on a charge.", category: "party", condition: "Good", dailyPrice: 500, bond: 4000, ...at(-0.006, 0.004) },
+    { id: "listing-4", ownerId: "seed-user-3", title: "Portable projector and 80-inch screen", description: "Full HD projector with a tripod screen. Works with laptops, Fire Stick and phones.", category: "electronics", condition: "Good", dailyPrice: 700, bond: 6000, ...at(0.009, 0.006) },
+    { id: "listing-5", ownerId: "seed-user-3", title: "Folding table and 6 chairs", description: "Six-seater folding set, wipes clean. Fits in a hatchback boot.", category: "furniture", condition: "Well used", dailyPrice: 300, bond: 1500, ...at(0.009, 0.006) },
+    { id: "listing-6", ownerId: "seed-user-4", title: "Cordless impact drill", description: "With a full bit set and two batteries. Handy for curtain rods and shelves.", category: "tools", condition: "Good", photo: "/cordless-impact-drill-tool.webp", dailyPrice: 120, bond: 1200, ...at(-0.003, -0.008) },
+    { id: "listing-7", ownerId: "seed-user-4", title: "Aluminium step ladder, 8 ft", description: "Light, sturdy and folds flat. Good for fans, lights and festive decoration.", category: "tools", condition: "Good", photo: "/aluminium-step-ladder.webp", dailyPrice: 80, bond: 800, ...at(-0.003, -0.008) },
+    { id: "listing-8", ownerId: "seed-user-1", title: "Badminton set with net", description: "Four rackets, a portable net with poles and a tube of shuttles.", category: "sports", condition: "Good", dailyPrice: 150, bond: 700, ...at(0.004, -0.003) },
+  ]
+
+  return { users, listings }
+}

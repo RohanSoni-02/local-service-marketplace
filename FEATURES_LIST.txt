@@ -21,6 +21,15 @@
 - Reservation with a 4-digit pickup code; a reserved or rented tool shows as unavailable to others
 - Pickup, due date, return; pay at the counter
 
+## Borrow from neighbours
+- Anyone can list an item: photo, category, condition, daily price, refundable bond, approximate pickup pin
+- Marketplace with search and category filters, as a grid or on a map; matching shop rental tools appear alongside
+- Request for 1–14 days with a note; the owner approves or declines
+- Handover: the borrower shows a 4-digit code, the owner enters it to record the item and bond changed hands
+- Return: the owner releases the bond in full, or keeps part of it with a written reason the borrower sees
+- Owners can pause or remove listings; an item on loan shows as lent out
+- Phone numbers are shared only once a loan is approved
+
 ## Parts on hold
 - Hold one unit for two hours with a pickup code; stock is decremented and restored on cancel or lapse
 
@@ -36,4 +45,5 @@
 
 ## Not built yet
 - Merchant app (shop responses are simulated — see README)
+- Bond escrow and dispute mediation (bonds are recorded, money moves person to person)
 - SMS OTP verification, in-app payments, photo attachments, Hindi localisation

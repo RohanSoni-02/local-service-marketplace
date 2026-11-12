@@ -6,7 +6,7 @@ import { Building2, ClipboardList, Home, MessageCircle, UserRound } from "lucide
 
 const tabs = [
   { href: "/", label: "Home", icon: Home, match: ["/"] },
-  { href: "/bookings", label: "Activity", icon: ClipboardList, match: ["/bookings", "/rentals"] },
+  { href: "/bookings", label: "Activity", icon: ClipboardList, match: ["/bookings", "/rentals", "/lending"] },
   { href: "/society", label: "Society", icon: Building2, match: ["/society"] },
   { href: "/chat", label: "Chats", icon: MessageCircle, match: ["/chat"] },
   { href: "/profile", label: "Profile", icon: UserRound, match: ["/profile"] },

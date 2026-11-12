@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Building2, ChevronRight, CircleHelp, ClipboardList, LogOut, MapPin, ShieldCheck } from "lucide-react"
+import { Building2, ChevronRight, CircleHelp, ClipboardList, HandHeart, LogOut, MapPin, ShieldCheck } from "lucide-react"
 import { signOut } from "@/lib/actions/auth"
 import { formatPhone } from "@/lib/format"
 import { requireUser } from "@/lib/server/auth"
@@ -17,6 +17,7 @@ export default async function ProfilePage() {
 
   const links = [
     { href: "/bookings", icon: ClipboardList, label: "Your activity", detail: "Visits, rentals and holds" },
+    { href: "/lending", icon: HandHeart, label: "Lend and borrow", detail: "Your listings and neighbour loans" },
     {
       href: "/society",
       icon: Building2,

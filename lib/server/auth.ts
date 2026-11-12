@@ -56,7 +56,7 @@ export async function destroySession() {
   jar.delete(SESSION_COOKIE)
 }
 
-export type SessionUser = Omit<schema.User, "passwordHash">
+export type SessionUser = Omit<schema.User, "passwordHash" | "isSeed">
 
 /** The signed-in user for this request, or null. Deduplicated per render. */
 export const getUser = cache(async (): Promise<SessionUser | null> => {

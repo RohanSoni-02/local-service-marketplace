@@ -15,6 +15,8 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash").notNull(),
   address: text("address").notNull().default(""),
   pincode: text("pincode").notNull().default(""),
+  /** Placeholder neighbours from the seed catalogue; they cannot sign in. */
+  isSeed: integer("is_seed", { mode: "boolean" }).notNull().default(false),
   createdAt: createdAt(),
 })
 
@@ -320,6 +322,92 @@ export const groupOffers = sqliteTable(
   (t) => [index("group_offers_request_idx").on(t.requestId)],
 )
 
+export const listings = sqliteTable(
+  "listings",
+  {
+    id: id(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    category: text("category").notNull(),
+    condition: text("condition", { enum: ["Like new", "Good", "Well used"] }).notNull(),
+    /** A public path: a bundled image or /listing-photo/<id>. */
+    photo: text("photo"),
+    dailyPrice: integer("daily_price").notNull(),
+    /** Refundable bond the borrower leaves with the owner. */
+    bond: integer("bond").notNull(),
+    area: text("area").notNull(),
+    /** Rounded to ~100 m so a listing never pinpoints a home. */
+    latitude: real("latitude").notNull(),
+    longitude: real("longitude").notNull(),
+    status: text("status", { enum: ["active", "paused", "removed"] }).notNull().default("active"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("listings_owner_idx").on(t.ownerId), index("listings_status_idx").on(t.status, t.category)],
+)
+
+export const listingPhotos = sqliteTable("listing_photos", {
+  listingId: text("listing_id")
+    .primaryKey()
+    .references(() => listings.id, { onDelete: "cascade" }),
+  mime: text("mime").notNull(),
+  /** Base64 image, resized in the browser before upload. */
+  data: text("data").notNull(),
+})
+
+export const peerRentalStatuses = [
+  "requested",
+  "approved",
+  "active",
+  "returned",
+  "closed",
+  "declined",
+  "cancelled",
+] as const
+export type PeerRentalStatus = (typeof peerRentalStatuses)[number]
+
+export const peerRentals = sqliteTable(
+  "peer_rentals",
+  {
+    id: id(),
+    listingId: text("listing_id")
+      .notNull()
+      .references(() => listings.id),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    renterId: text("renter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    days: integer("days").notNull(),
+    dailyPrice: integer("daily_price").notNull(),
+    bond: integer("bond").notNull(),
+    note: text("note").notNull().default(""),
+    /** The borrower shows this; the owner enters it to confirm handover and bond. */
+    handoverCode: text("handover_code").notNull(),
+    /** `returned` = borrower says it's back, owner hasn't settled the bond yet. */
+    status: text("status", { enum: peerRentalStatuses }).notNull().default("requested"),
+    bondStatus: text("bond_status", { enum: ["none", "held", "refunded", "claimed"] }).notNull().default("none"),
+    bondWithheld: integer("bond_withheld").notNull().default(0),
+    claimNote: text("claim_note").notNull().default(""),
+    createdAt: createdAt(),
+    approvedAt: ts("approved_at"),
+    startedAt: ts("started_at"),
+    dueAt: ts("due_at"),
+    returnedAt: ts("returned_at"),
+    closedAt: ts("closed_at"),
+  },
+  (t) => [
+    index("peer_rentals_renter_idx").on(t.renterId, t.createdAt),
+    index("peer_rentals_owner_idx").on(t.ownerId, t.createdAt),
+    index("peer_rentals_listing_idx").on(t.listingId, t.status),
+  ],
+)
+
+export type Listing = typeof listings.$inferSelect
+export type PeerRental = typeof peerRentals.$inferSelect
 export type User = typeof users.$inferSelect
 export type Shop = typeof shops.$inferSelect
 export type Review = typeof reviews.$inferSelect

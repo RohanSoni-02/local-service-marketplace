@@ -54,3 +54,22 @@ export const serviceArea = {
   longitude: 77.2433,
   radiusKm: 5,
 }
+
+/** What neighbours lend each other. */
+export const listingCategories = [
+  { id: "gaming", name: "Gaming" },
+  { id: "party", name: "Party & events" },
+  { id: "electronics", name: "Electronics" },
+  { id: "furniture", name: "Furniture" },
+  { id: "tools", name: "Tools" },
+  { id: "sports", name: "Sports & outdoors" },
+  { id: "other", name: "Other" },
+] as const
+
+export type ListingCategoryId = (typeof listingCategories)[number]["id"]
+
+export const listingConditions = ["Like new", "Good", "Well used"] as const
+
+export function getListingCategory(id: string) {
+  return listingCategories.find((category) => category.id === id)
+}
